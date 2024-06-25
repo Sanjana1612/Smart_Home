@@ -1,0 +1,177 @@
+#include <LiquidCrystal.h>
+char ch;
+String readvoice;
+
+#include <SoftwareSerial.h>
+int rs=8,en=9,d7=13,d6=12,d5=11,d4=10;
+LiquidCrystal lcd(rs,en,d4,d5,d6,d7);
+int ir=18;
+int fire=17;
+int buzz=16;
+int in1=14;
+int in2=15;
+int fan=3;
+int light=2;
+int pump=4;
+SoftwareSerial bluetoothSerial(6, 7);/* (Rx, Tx) */
+char Serial_read(void);
+void setup() 
+{
+
+  pinMode(ir,INPUT);
+//  pinMode(gas,INPUT);
+  pinMode(fire,INPUT);
+  pinMode(buzz,OUTPUT);
+  pinMode(in1,OUTPUT);
+  pinMode(in2,OUTPUT);
+  pinMode(fan,OUTPUT);
+  pinMode(light,OUTPUT);
+  digitalWrite(buzz,LOW);
+  pinMode(pump,OUTPUT);
+  digitalWrite(pump,LOW);
+  digitalWrite(in1,LOW);
+  digitalWrite(in2,LOW);
+  digitalWrite(light,LOW);
+  digitalWrite(fan,LOW);
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  lcd.clear();
+  lcd.print("SMART HOME");
+  lcd.setCursor(0, 1);
+  lcd.print("AUTOMATION");
+  delay(2000);
+}
+char Serial_read(void)
+{
+      char ch;
+      while(Serial.available() == 0);
+      ch = Serial.read(); 
+      return ch;
+}
+void loop() {
+  
+  VOICE();
+  SerialEvent();
+}
+void AUTOMATION()
+{
+      if (digitalRead(ir)==LOW)
+      { 
+        Serial.println("person detected...");
+          lcd.clear();
+          lcd.print("PERSON IDENTIFIED");
+          delay(2000);
+          
+        }
+        int sensor=analogRead(A5);
+        Serial.println("gas value :");
+        Serial.print(sensor);
+//      if (digitalRead(gas)==LOW)
+//{
+           if(sensor>100)
+           { 
+          lcd.clear();
+          lcd.print("GAS LEAKAGE");
+          lcd.setCursor(0, 1);
+          lcd.print("DETECTED...");
+          Serial.println("G");
+          digitalWrite(buzz,HIGH);
+          delay(2000);
+          digitalWrite(buzz,LOW);
+           }
+       
+      if (digitalRead(fire)==LOW)
+      {
+          lcd.clear();
+          lcd.print("FIRE DETECTED");
+          lcd.setCursor(0, 1);
+   
+          digitalWrite(pump,HIGH);
+          Serial.println("F");
+          digitalWrite(buzz,HIGH);
+          
+          delay(2000);
+          digitalWrite(pump,LOW);
+          digitalWrite(buzz,LOW);
+          
+        }
+}
+void VOICE()
+{
+  Serial.println("");
+  Serial.print("VOICE MODE ACTIVATED, WAITING FOR COMMAND");
+  while(1)
+  {
+    
+    bluetoothSerial.begin(9600);
+    while (bluetoothSerial.available())
+    {  //Check if there is an available byte to read
+      delay(10); //Delay added to make thing stable 
+      char c = bluetoothSerial.read(); //Conduct a serial read
+      readvoice += c; //build the string- "forward", "reverse", "left" and "right" 
+    }
+     Serial.println(readvoice);
+    if (readvoice.length() > 0) 
+    {
+      Serial.begin(9600);
+      
+   if((readvoice == "LIGHT OFF")||(readvoice == "light off")) 
+      {
+          digitalWrite(light,LOW);
+         
+      }
+     else if((readvoice == "light on")||(readvoice == "LIGHT ON")) 
+      {
+          digitalWrite(light,HIGH);
+      } 
+      
+      else if((readvoice == "fan off")||(readvoice == "FAN OFF")||(readvoice == "fan of")) 
+      {
+        digitalWrite(fan,LOW);
+
+      }
+      else if((readvoice == "fan on")||(readvoice == "FAN ON")) 
+      {
+        digitalWrite(fan,HIGH);
+      } 
+      }   
+    readvoice="";
+    AUTOMATION();
+    SerialEvent();
+  }
+  
+  }
+void SerialEvent()
+{
+    if(Serial.available()>0)
+  {
+    char ch1;
+    ch1=Serial.read();
+    Serial.println(ch1);
+    if(ch1=='A')
+    {
+           lcd.clear();
+          lcd.print("PERSON RECOGNIZED");
+          lcd.setCursor(0, 1);
+          delay(2000);
+      DOOR();
+      
+      }
+    }
+  }
+  void DOOR()
+  {
+   digitalWrite(in1,HIGH);
+  digitalWrite(in2,LOW);
+  delay(2000);
+  digitalWrite(in1,LOW);
+  digitalWrite(in2,LOW);
+ delay(2000);
+    digitalWrite(in1,LOW);
+  digitalWrite(in2,HIGH);
+  delay(2000);
+  digitalWrite(in1,LOW);
+  digitalWrite(in2,LOW);  
+    
+    
+    }
