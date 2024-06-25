@@ -1,7 +1,7 @@
 import serial
 import time
 import telepot
-bot=telepot.Bot('6590059318:AAHbG5S8IlG_b9BuIzDajHZmQVWIUlKOXEc')
+bot=telepot.Bot('')
 data = serial.Serial(
                     'COM6',
                     baudrate = 9600,
